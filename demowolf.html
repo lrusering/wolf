@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<title>wolf</title>
+	<style type="text/css">
+		*{margin:0;padding:0;}
+		#wrap {
+			cursor: "/img/pan.png";
+			margin:0 auto;
+			width: 320px;
+			height: 480px;
+			background: url(img/game_bg.jpg) no-repeat center center;
+			position: relative;
+		}
+		#score {
+			position: absolute;
+			left:60px;
+			top:11px;
+			color:#fff;
+			font-size: 20px;
+			font-family: arial;
+		}
+		#timebar {
+			position: absolute;
+			left:63px;
+			top:66px;
+			width: 180px;
+			height: 16px;
+			background:url(img/progress.png) no-repeat left top;
+		}
+		#wolfBox div {
+			position: absolute;
+			width: 108px;
+			height: 101px;
+			/*background-image: url(img/x.png);*/
+			background-repeat: no-repeat;
+		}
+		/*#wolfBox div:nth-child(1) {
+			position: absolute;
+			left:100px;
+			top:115px;
+		}
+		#wolfBox div:nth-child(2) {
+			position: absolute;
+			left:21px;
+			top:160px;
+		}
+		#wolfBox div:nth-child(3) {
+			position: absolute;
+			left:190px;
+			top:142px;
+		}
+		#wolfBox div:nth-child(4) {
+			position: absolute;
+			left:18px;
+			top:221px;
+		}
+		#wolfBox div:nth-child(5) {
+			position: absolute;
+			left:103px;
+			top:192px;
+		}
+		#wolfBox div:nth-child(6) {
+			position: absolute;
+			left:200px;
+			top:212px;
+		}
+		
+		#wolfBox div:nth-child(7) {
+			position: absolute;
+			left:33px;
+			top:294px;
+		}
+		#wolfBox div:nth-child(8) {
+			position: absolute;
+			left:122px;
+			top:274px;
+		}
+		#wolfBox div:nth-child(9) {
+			position: absolute;
+			left:210px;
+			top:295px;
+		}*/
+		#menu {
+			/*display: none;*/
+			position: absolute;
+			top:164px;
+			width:100%;
+			text-align: center;
+		}
+		#gameover {
+			display: none;
+			position: absolute;
+			top:200px;
+			width:100%;
+			text-align: center;
+			display: none;
+			font-family: "Microsoft Yahei";
+			line-height: 50px;
+			font-size: 30px;
+			font-weight: bold;
+			color: #F60;
+			text-shadow: 0 0 5px #FFFF00;
+		}
+		#start,#handle {
+			font-family: "Microsoft Yahei";
+			line-height: 50px;
+			font-size: 30px;
+			font-weight: bold;
+			color: #F60;
+			text-shadow: 0 0 5px #FFFF00;
+			display: block;
+			text-decoration: none;
+		}
+	</style>
+</head>
+<body>
+	<div id="wrap">
+		<div id="score">0</div>
+		<div id="timebar" style="width:180px;"></div>
+		<div id="wolfBox"></div>
+		<div id="menu">
+			<a href="javascript:void(0);" id="start">开始</a>
+			<a href="javascript:void(0);" id="handle">游戏操作说明</a>
+		</div>
+		<div id="gameover">game over!</div>
+	</div>
+
+	<script type="text/javascript">
+		var wolfBox = document.getElementById("wolfBox");
+		var scoreBar = document.getElementById("score");
+		var score = 0;
+		var startBtn = document.getElementById("start");
+		var menu = document.getElementById("menu");
+		var timebar = document.getElementById("timebar");
+		var gameover = document.getElementById("gameover");
+		var holeArr =[
+			{l:"100px",t:"115px"},
+			{l:"21px",t:"160px"},
+			{l:"190px",t:"142px"},
+			{l:"18px",t:"221px"},
+			{l:"103px",t:"192px"},
+			{l:"200px",t:"212px"},
+			{l:"33px",t:"294px"},
+			{l:"122px",t:"274px"},
+			{l:"210px",t:"295px"}
+		];
+		var startTimer = 0;
+		function randomNum(min,max) {
+			return parseInt(Math.random()*(max - min + 1) + min);
+		}
+
+		var posArr = [];
+		
+		function createWolf() {
+			
+			//创建一只狼
+			var wolf = document.createElement("div");
+			wolf.index = 0;
+			wolf.flag = true;
+			wolf.ifClick = false;
+			//随机生成一个位置
+			var pos = randomNum(0,8);
+
+			//判断跟前面4次出现的位置不一样
+			while(posArr.indexOf(pos) > -1) {
+				pos = randomNum(0,8);
+				if(posArr.length > 8) {
+					posArr.splice(0,4);
+				}
+			}
+			// console.log(posArr);
+			posArr.push(pos);
+			
+			wolf.style.left = holeArr[pos].l;
+			wolf.style.top = holeArr[pos].t;
+			//按比率18：82生成小灰灰跟灰太狼
+			var who = Math.random() > 0.82 ? "x":"h";
+			wolf.style.backgroundImage = "url(img/"+who+".png)";
+			wolfBox.appendChild(wolf);
+			//点击狼
+			wolf.onclick = function() {
+				wolf.ifClick = true;
+				wolf.index = 5;	
+				wolf.onclick = null;//只能点一下
+
+				//计分
+				if(who == "h") {
+					score += 10;
+				}else {
+					score -= 10;
+				}
+				scoreBar.innerHTML = score;
+			}
+			
+			
+			wolf.upTimer = setInterval(function() {
+				if(wolf.flag || wolf.ifClick) {
+					wolf.index++;
+				}else {
+					wolf.index--;
+				}
+				
+				if(wolf.index >= 5) {
+					wolf.flag = false;
+				}
+				if(wolf.index > 9 || wolf.index < 0) {
+					clearInterval(wolf.upTimer);
+					wolfBox.removeChild(wolf);
+				}
+				wolf.style.backgroundPosition = -108 * wolf.index +"px 0";
+			},100)
+		}
+		function gameStart() {
+			startTimer = setInterval(function() {
+				createWolf();
+			},500)
+		}
+		// createWolf();
+		
+		//时间栏
+		function time() {
+
+			var timeWidth = timebar.offsetWidth;
+			var timerBarTimer = setInterval(function() {
+				timeWidth--;
+				if(timeWidth <= 0) {
+					// clearInterval(timerBarTimer);
+					clearInterval(startTimer);
+					if(wolfBox.children.length == 0) {
+						gameover.style.display = "block";
+						clearInterval(timerBarTimer);
+					}
+					
+				}
+				timebar.style.width = timeWidth + "px";
+			},120)
+		}
+		//游戏开始
+		startBtn.onclick = function() {
+			gameStart();
+			time();
+			menu.style.display = "none";
+		}
+	</script>	
+</body>
+</html>
